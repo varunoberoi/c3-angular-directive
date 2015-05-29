@@ -148,14 +148,18 @@ angular.module('gridshore.c3js.chart', [])
             if ($scope.chartData && $scope.chartColumns) {
                 $scope.$watchCollection('chartData', function () {
                     loadChartData();
-                });
-                //#todo check if this watch can be avoided ?
-                $scope.$watch('chartSize', function(){
-                   loadChartData(); 
-                }, true);
+                });                
             } else {
                 $scope.chart = c3.generate($scope.config);
             }
+
+            //#todo check if this watch can be avoided ?                
+            if(!$scope.chartSize)
+                $scope.chartSize = {};
+            $scope.$watch('chartSize', function(){
+                console.log('$watch in chartCtrl');
+               loadChartData(); 
+            }, true);
 
             $scope.$on('$destroy', function () {
                 if (angular.isDefined($scope.chart)) {
@@ -259,6 +263,7 @@ angular.module('gridshore.c3js.chart', [])
 
         // Added an api to update size 
         this.updateSize = function (chartSize) {
+            console.log('updateSize');
             if(!$scope.chartSize)
                 $scope.chartSize = {};
 
@@ -782,14 +787,14 @@ angular.module('gridshore.c3js.chart', [])
 
     })
     .directive('chartSize', function () {
-        var sizeLinker = function (scope, element, attrs, chartCtrl) {
-            // #todo no check here for default values
-            var chartSize = {                                
-            };
-            chartSize['width'] = scope.sizeX * scope.minChartWidth;
-            chartSize['height'] = scope.sizeY * scope.minChartHeight; 
-
+        var sizeLinker = function (scope, element, attrs, chartCtrl) {            
             scope.$watch('sizeX+sizeY+minChartWidth+minChartHeight', function(){
+                console.log('$watch in chartSize');
+                // #todo no check here for default values
+                var chartSize = {                                
+                };
+                chartSize['width'] = scope.sizeX * scope.minChartWidth;
+                chartSize['height'] = scope.sizeY * scope.minChartHeight; 
                 chartCtrl.updateSize(chartSize);            
             });            
         };
