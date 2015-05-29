@@ -149,6 +149,10 @@ angular.module('gridshore.c3js.chart', [])
                 $scope.$watchCollection('chartData', function () {
                     loadChartData();
                 });
+                //#todo check if this watch can be avoided ?
+                $scope.$watch('chartSize', function(){
+                   loadChartData(); 
+                }, true);
             } else {
                 $scope.chart = c3.generate($scope.config);
             }
@@ -251,6 +255,14 @@ angular.module('gridshore.c3js.chart', [])
 
         this.addSize = function (chartSize) {
             $scope.chartSize = chartSize;
+        };
+
+        // Added an api to update size 
+        this.updateSize = function (chartSize) {
+            if(!$scope.chartSize)
+                $scope.chartSize = {};
+
+            angular.extend($scope.chartSize, chartSize);
         };
 
         this.addColors = function (colors) {
@@ -771,25 +783,26 @@ angular.module('gridshore.c3js.chart', [])
     })
     .directive('chartSize', function () {
         var sizeLinker = function (scope, element, attrs, chartCtrl) {
-            var chartSize = null;
-            var width = attrs.chartWidth;
-            var height = attrs.chartHeight;
-            if (width || height) {
-                chartSize = {};
-                if (width) {
-                    chartSize.width = parseInt(width);
-                }
-                if (height) {
-                    chartSize.height = parseInt(height);
-                }
-                chartCtrl.addSize(chartSize);
-            }
+            // #todo no check here for default values
+            var chartSize = {                                
+            };
+            chartSize['width'] = scope.sizeX * scope.minChartWidth;
+            chartSize['height'] = scope.sizeY * scope.minChartHeight; 
+
+            scope.$watch('sizeX+sizeY+minChartWidth+minChartHeight', function(){
+                chartCtrl.updateSize(chartSize);            
+            });            
         };
 
         return {
             "require": "^c3chart",
             "restrict": "E",
-            "scope": {},
+            "scope": {  //#Todo A hack here
+                'sizeX': '=sizeX',
+                'sizeY': '=sizeY',
+                'minChartWidth': '=minChartWidth',
+                'minChartHeight': '=minChartHeight'
+            },
             "replace": true,
             "link": sizeLinker
         };
